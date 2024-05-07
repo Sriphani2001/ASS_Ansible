@@ -41,7 +41,7 @@ frontend haproxynode
 backend backendnodes
     balance roundrobin
     {% for servers in groups["webservers"] %}
-        server  {{ servers }} {{ hostvars[servers]['ansible_default_ipv4']['address'] }}:8080 check
+        server  {{ servers }} {{ hostvars[servers]['ansible_default_ipv4']['address'] }}:5000 check
     {% endfor %}
     
 listen stats
