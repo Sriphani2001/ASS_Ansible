@@ -42,6 +42,14 @@
       apt:
         name: python3-flask
         state: latest
+     
+    - name: copy the flask app code to the servers
+      copy:
+        src:  /$PWD/application2.py
+        dest: /home/ubuntu/application2.py
+        owner: ubuntu
+        mode: '0644'
+             
 
     # Install SNMPd
     - name: Install SNMPd
@@ -122,28 +130,7 @@
         name: nginx
         state: latest
 
-    # copying nginx cofg
-    - name: Copy Nginx configuration
-      become: true
-      template:
-        src: ./nginx.conf.j2
-        dest: /etc/nginx/nginx.conf
-        owner: root
-        group: root
-        mode: '0644'
-        
-    # Configure UDP load balancing for Nginx
-    - name: Configuring UDP load balancing for Nginx
-      template:
-        src: "./nginx.j2"
-        dest: "/etc/nginx/nginx.conf"
-
-    # Restart Nginx service
-    - name: Restart Nginx
-      service:
-        name: nginx
-        state: restarted
-
+    
   handlers:
     # Handler to restart HAProxy after configuration change
     - name: Start HAProxy
