@@ -28,14 +28,9 @@ backend app-backend
         stats enable
         stats uri /haproxy?stats
         balance roundrobin
-        {% for host in groups["webservers"] %}
-        server {{ host }} {{ hostvars[host].ansible_default_ipv4.address}}:5000 check
-{% endfor %}
+        {% for dev_servers in groups['webservers'] %}
+    server  {{ dev_servers }} {{ 
+hostvars[dev_servers]["ansible_default_ipv4"]["address"]}}:8080
+   {% endfor %}
 
 
-backend app-backend
-    mode http
-    balance roundrobin
-    server  deva  {{ hostvars['deva'].ansible_all_ipv4_addresses }}:5000
-    server  devb  {{ hostvars['devb'].ansible_all_ipv4_addresses }}:5000
-    server  devc  {{ hostvars['devc'].ansible_all_ipv4_addresses }}:5000
