@@ -1,5 +1,77 @@
 # Playbook to deploy HAProxy and Flask app on existing hosts
 
+# Part 2: Deploy Flask app on webservers
+- hosts: webservers
+  become: yes
+  gather_facts: yes
+  
+  tasks:
+    # Update apt cache
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+
+    # Install Python 3 and pip
+    - name: Install Python 3 and pip
+      apt:
+        name:
+          - python3
+          - python3-pip
+        state: present
+
+    # Install Flask
+    - name: Install Flask
+      pip:
+        name: Flask
+        state: latest
+
+    # Fetch Flask application
+    - name: Fetch Flask application
+      copy:
+        src: application2.py
+        dest: /home/ubuntu/application2.py
+
+    # Install Gunicorn
+    - name: Install Gunicorn
+      apt:
+        name: gunicorn
+        state: latest
+
+    # Install Python 3 Flask package
+    - name: Install Python 3 Flask package
+      apt:
+        name: python3-flask
+        state: latest
+
+    # Install SNMPd
+    - name: Install SNMPd
+      apt:
+        name: snmpd
+        state: latest
+
+    # Configure SNMPd
+    - name: Configuring SNMPd
+      template:
+        src: "./snmpd.conf"
+        dest: "/etc/snmp/snmpd.conf"
+
+    # Restart SNMPd
+    - name: Restart SNMPd
+      service:
+        name: snmpd
+        state: restarted
+        enabled: yes
+
+    # Copy Flask application file
+    - name: Copy Flask application file
+      copy:
+        src: application2.py
+        dest: /home/ubuntu/application2.py
+
+    # Run Flask app using Gunicorn
+    - name: Run Flask app
+      shell: gunicorn -w 2 -D -b 0.0.0.0:8080 application2:app
+      
 # Part 1: Configure HAProxy
 - become: yes
   hosts: HAproxy
@@ -80,74 +152,4 @@
         state: restarted
 
 
-# Part 2: Deploy Flask app on webservers
-- hosts: webservers
-  become: yes
-  gather_facts: yes
-  
-  tasks:
-    # Update apt cache
-    - name: Update apt cache
-      apt:
-        update_cache: yes
 
-    # Install Python 3 and pip
-    - name: Install Python 3 and pip
-      apt:
-        name:
-          - python3
-          - python3-pip
-        state: present
-
-    # Install Flask
-    - name: Install Flask
-      pip:
-        name: Flask
-        state: latest
-
-    # Fetch Flask application
-    - name: Fetch Flask application
-      copy:
-        src: application2.py
-        dest: /home/ubuntu/application2.py
-
-    # Install Gunicorn
-    - name: Install Gunicorn
-      apt:
-        name: gunicorn
-        state: latest
-
-    # Install Python 3 Flask package
-    - name: Install Python 3 Flask package
-      apt:
-        name: python3-flask
-        state: latest
-
-    # Install SNMPd
-    - name: Install SNMPd
-      apt:
-        name: snmpd
-        state: latest
-
-    # Configure SNMPd
-    - name: Configuring SNMPd
-      template:
-        src: "./snmpd.conf"
-        dest: "/etc/snmp/snmpd.conf"
-
-    # Restart SNMPd
-    - name: Restart SNMPd
-      service:
-        name: snmpd
-        state: restarted
-        enabled: yes
-
-    # Copy Flask application file
-    - name: Copy Flask application file
-      copy:
-        src: application2.py
-        dest: /home/ubuntu/application2.py
-
-    # Run Flask app using Gunicorn
-    - name: Run Flask app
-      shell: gunicorn -w 2 -D -b 0.0.0.0:8080 application2:app
