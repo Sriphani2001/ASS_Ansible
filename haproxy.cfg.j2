@@ -31,3 +31,11 @@ backend app-backend
         {% for host in groups["webservers"] %}
         server {{ host }} {{ hostvars[host].ansible_default_ipv4.address}}:5000 check
 {% endfor %}
+
+
+backend app-backend
+    mode http
+    balance roundrobin
+    server  deva  {{ hostvars['deva'].ansible_all_ipv4_addresses }}:5000
+    server  devb  {{ hostvars['devb'].ansible_all_ipv4_addresses }}:5000
+    server  devc  {{ hostvars['devc'].ansible_all_ipv4_addresses }}:5000
