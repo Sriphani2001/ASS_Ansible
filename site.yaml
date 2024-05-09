@@ -1,119 +1,83 @@
-# Playbook to deploy HAProxy and Flask app on existing hosts
 
-# Part 1: Deploy Flask app on webservers
 - hosts: all
-  become: yes
   gather_facts: yes
-        
-    # Update apt cache
-    - name: Update apt cache
+  become: yes
+  tasks:
+    - name: Update package cache
       apt:
         update_cache: yes
 
-    # Install Python 3 and pip
-    - name: Install Python 3 and pip
+    - name: Upgrade packages
       apt:
-        name:
-          - python3
-          - python3-pip
-        state: present
+        upgrade: yes
+        autoremove: yes
+        autoclean: yes
+#installs and configures haproxy
+- hosts: HAproxy
+  become: yes
+  become_method: sudo
+  tasks:
+    - name: HAproxy Update
+      apt:
+        update_cache: yes
 
-    # Install Flask
-    - name: Install Flask
+    - name: Install HAproxy
+      apt:
+        name: haproxy
+        state: latest
+
+    - name: Configure HAproxy
+      template:
+        src: haproxy.cfg.j2
+        dest: /etc/haproxy/haproxy.cfg.j2
+ 
+    - name: Restart HAproxy
+      become: yes
+      service:
+        name: haproxy
+        state: restarted
+
+# Deploys and tests the flask app on webservers
+- hosts: webservers
+  become: yes
+  become_method: sudo
+  tasks:
+
+    - name: Webservers update
+      apt:
+        update_cache: yes
+
+    - name: install python3-pip
+      apt:
+        name: python3-pip
+        state: latest
+        update_cache: yes
+
+    - name: flask installation
       pip:
-        name: Flask
+        name: flask
         state: latest
-        
- # Install Python 3 Flask package
-    - name: Install Python 3 Flask package
-      apt:
-        name: python3-flask
-        state: latest
-        
-    # Fetch Flask application
-    - name: Fetch Flask application
-      copy:
-        src: application2.py
-        dest: /home/ubuntu/application2.py
 
-    # Install Gunicorn
-    - name: Install Gunicorn
+    - name: install Gunicorn
       apt:
         name: gunicorn
-        state: latest
 
-   
-     
     - name: copy the flask app code to the servers
       copy:
         src:  /$PWD/application2.py
         dest: /home/ubuntu/application2.py
         owner: ubuntu
         mode: '0644'
-
-    # Copy Flask application file
-    - name: Copy Flask application file
-      copy:
-        src: application2.py
-        dest: /home/ubuntu/application2.py
-
-    # Run Flask app using Gunicorn
-    - name: Run Flask app
+           
+    - name: execute the flask-app deployment
       shell: gunicorn -w 2 -D -b 0.0.0.0:8080 application2:app
-      
-# Part 2: Configure HAProxy
+ 
 - hosts: HAproxy
   become: yes
   become_method: sudo
-  gather_facts: yes
-  
-  tasks:
-    # Update haproxy
-    - name: Update 
-      apt:
-        update_cache: yes
-
-    # Install HAProxy
-    - name: Install HAProxy
-      apt:
-        name: haproxy
-        state: latest
-
-     #Istallation of curl
-    - name: Install curl
-      apt:
-        name: curl
-        state: latest       
-
-    # Delete previous HAProxy configuration
-    - name: Delete previous HAProxy configuration
-      file:
-        path: "/etc/haproxy/haproxy.cfg"
-        state: absent
-
-    # Deploy new HAProxy configuration
-    - name: Deploy new HAProxy
-      template:
-        src: "./haproxy.cfg.j2"
-        dest: "/etc/haproxy/haproxy.cfg"
-      notify: Start HAProxy
-
-    # Restart HAProxy service
-    - name: Restart HAProxy
+  tasks:       
+    - name: Restart HAproxy
+      become: yes
       service:
-        name: haproxy
-        state: restarted
-        enabled: yes
- 
-
-
-    
-  handlers:
-    # Handler to restart HAProxy after configuration change
-    - name: Start HAProxy
-      service:
-        name: haproxy
-        state: restarted
-
-
-
+            name: haproxy
+            state: restarted
