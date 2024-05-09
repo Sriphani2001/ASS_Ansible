@@ -17,20 +17,23 @@ defaults
     timeout client          50000
     timeout server          50000
 
-frontend http-in
+frontend web-frontend
     bind *:80
     mode http
-    default_backend app-backend
+    default_backend web-backend
 
-backend app-backend
-    mode http
-    balance roundrobin
-        stats enable
-        stats uri /haproxy?stats
+backend web-backend
         balance roundrobin
-        {% for dev_servers in groups['webservers'] %}
+	mode http
+	option forwardfor
+   {% for dev_servers in groups['webservers'] %}
     server  {{ dev_servers }} {{ 
 hostvars[dev_servers]["ansible_default_ipv4"]["address"]}}:8080
    {% endfor %}
 
+listen stats
+    bind *:8404
+    stats enable
+    stats uri /monito
+    stats refresh 5s  
 
