@@ -4,13 +4,6 @@
 - hosts: all
   become: yes
   gather_facts: yes
-  
-  tasks:
-  name: Upgrade packages
-      apt:
-        upgrade: yes
-        autoremove: yes
-        autoclean: yes
         
     # Update apt cache
     - name: Update apt cache
