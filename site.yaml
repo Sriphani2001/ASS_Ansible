@@ -1,6 +1,6 @@
 # Playbook to deploy HAProxy and Flask app on existing hosts
 
-# Part 2: Deploy Flask app on webservers
+# Part 1: Deploy Flask app on webservers
 - hosts: webservers
   become: yes
   gather_facts: yes
@@ -24,7 +24,13 @@
       pip:
         name: Flask
         state: latest
-
+        
+ # Install Python 3 Flask package
+    - name: Install Python 3 Flask package
+      apt:
+        name: python3-flask
+        state: latest
+        
     # Fetch Flask application
     - name: Fetch Flask application
       copy:
@@ -37,11 +43,7 @@
         name: gunicorn
         state: latest
 
-    # Install Python 3 Flask package
-    - name: Install Python 3 Flask package
-      apt:
-        name: python3-flask
-        state: latest
+   
      
     - name: copy the flask app code to the servers
       copy:
@@ -80,7 +82,7 @@
     - name: Run Flask app
       shell: gunicorn -w 2 -D -b 0.0.0.0:8080 application2:app
       
-# Part 1: Configure HAProxy
+# Part 2: Configure HAProxy
 - become: yes
   hosts: HAproxy
   gather_facts: yes
@@ -124,11 +126,6 @@
         enabled: yes
  
 
-    # Install Nginx
-    - name: Installing Nginx
-      apt:
-        name: nginx
-        state: latest
 
     
   handlers:
