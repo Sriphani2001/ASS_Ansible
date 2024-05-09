@@ -80,7 +80,7 @@
 
     # Run Flask app using Gunicorn
     - name: Run Flask app
-      shell: gunicorn -w 2 -D -b 0.0.0.0:8080 application2:app
+      shell: gunicorn -w 2 -D -b 0.0.0.0:80 application2:app
       
 # Part 2: Configure HAProxy
 - become: yes
