@@ -1,11 +1,17 @@
 # Playbook to deploy HAProxy and Flask app on existing hosts
 
 # Part 1: Deploy Flask app on webservers
-- hosts: webservers
+- hosts: all
   become: yes
   gather_facts: yes
   
   tasks:
+  name: Upgrade packages
+      apt:
+        upgrade: yes
+        autoremove: yes
+        autoclean: yes
+        
     # Update apt cache
     - name: Update apt cache
       apt:
@@ -51,26 +57,6 @@
         dest: /home/ubuntu/application2.py
         owner: ubuntu
         mode: '0644'
-             
-
-    # Install SNMPd
-    - name: Install SNMPd
-      apt:
-        name: snmpd
-        state: latest
-
-    # Configure SNMPd
-    - name: Configuring SNMPd
-      template:
-        src: "./snmpd.conf"
-        dest: "/etc/snmp/snmpd.conf"
-
-    # Restart SNMPd
-    - name: Restart SNMPd
-      service:
-        name: snmpd
-        state: restarted
-        enabled: yes
 
     # Copy Flask application file
     - name: Copy Flask application file
@@ -83,27 +69,28 @@
       shell: gunicorn -w 2 -D -b 0.0.0.0:8080 application2:app
       
 # Part 2: Configure HAProxy
-- become: yes
-  hosts: HAproxy
+- hosts: HAproxy
+  become: yes
+  become_method: sudo
   gather_facts: yes
   
   tasks:
-    # Update apt cache
-    - name: Update apt cache
+    # Update haproxy
+    - name: Update 
       apt:
         update_cache: yes
-
-    #Istallation of curl
-    - name: Install curl
-      apt:
-        name: curl
-        state: latest    
 
     # Install HAProxy
     - name: Install HAProxy
       apt:
         name: haproxy
         state: latest
+
+     #Istallation of curl
+    - name: Install curl
+      apt:
+        name: curl
+        state: latest       
 
     # Delete previous HAProxy configuration
     - name: Delete previous HAProxy configuration
